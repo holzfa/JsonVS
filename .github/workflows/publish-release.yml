@@ -1,0 +1,58 @@
+name: Publish NuGet Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Extract Version Tag
+      id: get_version
+      run: |
+        VERSION="${GITHUB_REF_NAME#v}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Restore Dependencies
+      run: dotnet restore
+
+    - name: Build & Pack Package
+      run: >
+        dotnet pack
+        --configuration Release
+        --no-restore
+        -p:PackageVersion=${{ steps.get_version.outputs.version }}
+        --output ./nupkg
+
+    - name: Extract Commit Message
+      id: get_commit_msg
+      run: |
+        COMMIT_MSG=$(git log -1 --pretty=format:"%B")
+        echo "commit_msg<<EOF" >> $GITHUB_OUTPUT
+        echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: ${{ steps.get_version.outputs.version }}
+        body: ${{ steps.get_commit_msg.outputs.commit_msg }}
+        files: ./nupkg/*.nupkg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
