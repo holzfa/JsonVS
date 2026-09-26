@@ -2,7 +2,6 @@
 
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Build and Test](https://img.shields.io/github/actions/workflow/status/holzfa/JsonVS/build-and-test.yml?label=build%20%26%20test)](https://github.com/yourusername/JsonVS/actions)
-[![NuGet](https://img.shields.io/nuget/v/JsonVS.svg)](https://www.nuget.org/packages/JsonVS/)
 
 JsonVS is a lightweight .NET 10 JSON navigation library that treats JSON documents like a file tree, letting you query nested objects, properties, and arrays using path syntax (e.g. `elements[0]/faces` or `elements/from[0]`) instead of writing nested object iteration by hand.
 
