@@ -1,38 +1,15 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace JsonVS;
 
-public sealed record JsonObject : JsonValue
+public sealed partial record JsonObject
 {
-    internal JsonObject(JsonElement element)
-    {
-        _element = element;
-    }
-    private readonly JsonElement _element;
-    
-    public bool IsArray => _element.ValueKind == JsonValueKind.Array;
-    public IEnumerable<(string Name, JsonValue Value)> GetProperties() => _element.EnumerateObject().Select(p => (p.Name, ToValue(p.Value)));
-
-    public IEnumerable<(string Name, T Value)> GetProperties<T>() where T : JsonValue
-    {
-        List<(string, T)> result = new ();
-        foreach (var prop in _element.EnumerateObject())
-        {
-            var val = ToValue(prop.Value);
-            if (val is T t) result.Add((prop.Name, t));
-        }
-
-        return result.ToArray();
-    }
-    
-    
     #region Property Check
     public bool Exists(string pathString) => Exists(PathParser.Parse(pathString));
     public bool Exists(JsonPath path)
     {
-        var element = _element;
+        var element = Element;
         JsonPath? activePath = path;
         
         while (activePath is not null)
@@ -62,7 +39,7 @@ public sealed record JsonObject : JsonValue
     public JsonValue Get(string pathString) => Get(PathParser.Parse(pathString));
     public JsonValue Get(JsonPath path)
     {
-        var element = _element;
+        var element = Element;
         JsonPath? activePath = path;
         
         while (activePath is not null)
@@ -102,7 +79,7 @@ public sealed record JsonObject : JsonValue
     public bool TryGet(string pathString, [NotNullWhen(true)] out JsonValue? value) => TryGet(PathParser.Parse(pathString), out value);
     public bool TryGet(JsonPath path, [NotNullWhen(true)] out JsonValue? value)
     {
-        var element = _element;
+        var element = Element;
         JsonPath? activePath = path;
         value = null;
         
@@ -124,18 +101,7 @@ public sealed record JsonObject : JsonValue
             activePath = activePath.Next;
         }
 
-        value = element.ValueKind switch
-        {
-            JsonValueKind.Number => element.TryGetInt32(out var integer) 
-                ? new JsonInteger(integer) 
-                : new JsonDecimal(element.GetDouble()),
-            JsonValueKind.String => new JsonString(element.GetString()),
-            JsonValueKind.True or JsonValueKind.False => new JsonBoolean(element.ValueKind is JsonValueKind.True),
-            JsonValueKind.Object => new JsonObject(element),
-            JsonValueKind.Array => new JsonArray(element),
-            JsonValueKind.Null or JsonValueKind.Undefined=> new JsonNull(),
-            _ => throw new JsonException("Something went wrong")
-        };
+        value = ToValue(element);
         
         return true;
     }
@@ -152,17 +118,4 @@ public sealed record JsonObject : JsonValue
         return result; // Safe cast as we made sure it is of type T before
     }
     #endregion
-    
-    private JsonValue ToValue(JsonElement element) => element.ValueKind switch
-    {
-        JsonValueKind.Number => element.TryGetInt32(out var integer) 
-            ? new JsonInteger(integer) 
-            : new JsonDecimal(element.GetDouble()),
-        JsonValueKind.String => new JsonString(element.GetString()),
-        JsonValueKind.True or JsonValueKind.False => new JsonBoolean(element.ValueKind is JsonValueKind.True),
-        JsonValueKind.Object => new JsonObject(element),
-        JsonValueKind.Array => new JsonArray(element),
-        JsonValueKind.Null or JsonValueKind.Undefined=> new JsonNull(),
-        _ => throw new JsonException("Something went wrong")
-    };
 }
