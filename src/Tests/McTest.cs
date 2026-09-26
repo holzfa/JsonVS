@@ -19,7 +19,7 @@ public class McTest
         var filePath = "stone_pressure_plate.json";
         
         // Act
-        var obj = JsonLoader.LoadFile(filePath);
+        var obj = JsonLoader.LoadFromFile(filePath);
         var variants = obj.Get<JsonObject>("variants");
 
         Dictionary<string, string> results = new();

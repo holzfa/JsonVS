@@ -29,7 +29,7 @@ public class LoadTests
         // Arrange
         
         // Act
-        var obj = JsonLoader.LoadFile("stone_pressure_plate.json");
+        var obj = JsonLoader.LoadFromFile("stone_pressure_plate.json");
         var poweredExists = obj.Exists("variants/powered=true");
 
         // Assert

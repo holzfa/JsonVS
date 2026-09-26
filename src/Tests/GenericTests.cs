@@ -5,6 +5,13 @@ namespace Tests;
 
 public class GenericTests
 {
+    private readonly string _json = 
+        """
+        {
+            "elements": [ { "from": [ 6, 0, 6 ] } ]
+        }
+        """;
+    
     [Fact]
     public void PathTest()
     {
@@ -17,5 +24,19 @@ public class GenericTests
         
         // Assert
         Assert.Equal(expectedPath, path);
+    }
+
+    [Fact]
+    public void ExistsTest()
+    {
+        // Arrange
+        var obj = JsonLoader.Load(_json);
+        var path = "elements[0]/from";
+        
+        // Act
+        var result = obj.Exists(path);
+        
+        // Assert
+        Assert.True(result);
     }
 }

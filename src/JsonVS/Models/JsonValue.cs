@@ -57,7 +57,10 @@ public sealed record JsonArray : JsonValue
 {
     internal JsonArray(JsonValue[] elements) { Elements = elements; }
     
-    public JsonValue[] Elements;
+    public readonly JsonValue[] Elements;
+
+    public TValue[] GetElements<TValue>() where TValue : JsonValue
+        => Elements.OfType<TValue>().ToArray();
 
     public static readonly JsonArray Empty = new([]);
 }
