@@ -1,53 +1,65 @@
 ﻿using System.Text.Json;
 
-namespace JsonVS;
+namespace JsonVS.Models;
 
-public abstract record JsonValue;
-public abstract record JsonLiteral<T> : JsonValue
+public abstract record JsonNode;
+public abstract record JsonValue : JsonNode;
+public abstract record JsonLiteral : JsonValue
 {
-    internal JsonLiteral(T val)
+    internal JsonLiteral(string val)
     {
         Value = val;
     }
     
-    public T Value { get; }
+    internal string Value { get; }
 }
 
 
 
-public sealed record JsonInteger : JsonLiteral<int>
+public sealed record JsonInteger : JsonLiteral
 {
-    internal JsonInteger(int val) : base(val) { }
+    internal JsonInteger(string val) : base(val) { }
+    
+    public short Get16() => short.Parse(Value);
+    public int Get32() => int.Parse(Value);
+    public long Get64() => long.Parse(Value);
 }
 
-public sealed record JsonDecimal : JsonLiteral<double>
+public sealed record JsonDecimal : JsonLiteral
 {
-    internal JsonDecimal(double val) : base(val) { }
+    internal JsonDecimal(string val) : base(val) { }
+    
+    public float Get32() => float.Parse(Value);
+    public double Get64() => double.Parse(Value);
 }
 
-public sealed record JsonString : JsonLiteral<string>
+public sealed record JsonString : JsonLiteral
 {
     internal JsonString(string val) : base(val) { }
+
+    public new string Value => base.Value;
 }
 
-public sealed record JsonBoolean : JsonLiteral<bool>
+public sealed record JsonBoolean : JsonLiteral
 {
-    internal JsonBoolean(bool val) : base(val) { }
+    internal JsonBoolean(string val) : base(val) { }
     
-    public static readonly JsonBoolean True = new(true);
-    public static readonly JsonBoolean False = new(false);
+    public bool Get() => bool.Parse(Value);
+    
+    public static readonly JsonBoolean True = new("true");
+    public static readonly JsonBoolean False = new("false");
 }
 
-public sealed record JsonNull : JsonValue
+public sealed record JsonNull() : JsonLiteral("null")
 {
     public static readonly JsonNull Instance = new();
 }
 
 public sealed record JsonArray : JsonValue
 {
-    internal JsonArray(JsonElement element) { _element = element; }
+    internal JsonArray(JsonValue[] elements) { Elements = elements; }
     
-    private JsonElement _element;
+    public JsonValue[] Elements;
 
-    public static readonly JsonArray Empty = new(new JsonElement());
+    public static readonly JsonArray Empty = new([]);
 }

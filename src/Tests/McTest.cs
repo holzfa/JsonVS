@@ -1,4 +1,6 @@
 using JsonVS;
+using JsonVS.Models;
+using JsonObject = JsonVS.Models.JsonObject;
 
 namespace Tests;
 
@@ -21,9 +23,9 @@ public class McTest
         var variants = obj.Get<JsonObject>("variants");
 
         Dictionary<string, string> results = new();
-        foreach (var (name, val) in variants.GetProperties<JsonObject>())
+        foreach (var prop in variants.GetProperties<JsonObject>())
         {
-            results[name] = val.Get<JsonString>("model").Value;
+            results[prop.Name] = prop.Value.Get<JsonString>("model").Value;
         }
         
         // Assert

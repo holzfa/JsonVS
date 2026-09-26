@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using JsonVS.Ast;
 
-namespace JsonVS;
+namespace JsonVS.Models;
 
 public sealed partial record JsonObject
 {
@@ -9,21 +10,19 @@ public sealed partial record JsonObject
     public bool Exists(string pathString) => Exists(PathParser.Parse(pathString));
     public bool Exists(JsonPath path)
     {
-        var element = Element;
+        JsonValue node = this;
         JsonPath? activePath = path;
         
         while (activePath is not null)
         {
-            // If its a scalarPath, try to get the property and save it
-            if (activePath is ScalarPath sp)
+            if (activePath is ScalarPath sp && node is JsonObject on)
             {
-                if (element.TryGetProperty(sp.Name, out var newElement)) element = newElement;
+                if (on.FastProperties.TryGetValue(sp.Name, out var obj)) node = obj;
                 else return false;
             }
-            // Otherwise if its an indexPath, make sure the element is an array and that the index is ok
-            else if (activePath is IndexPath ip)
+            else if (activePath is IndexPath ip && node is JsonArray an)
             {
-                if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > ip.Index) element = element.EnumerateArray().ElementAt(ip.Index);
+                if (an.Elements.Length > ip.Index) { if (node is JsonObject obj) node = obj; }
                 else return false;
             }
 
@@ -39,28 +38,28 @@ public sealed partial record JsonObject
     public JsonValue Get(string pathString) => Get(PathParser.Parse(pathString));
     public JsonValue Get(JsonPath path)
     {
-        var element = Element;
+        JsonValue val = this;
         JsonPath? activePath = path;
         
         while (activePath is not null)
         {
-            // If its a scalarPath, try to get the property and save it
-            if (activePath is ScalarPath sp)
+            if (activePath is ScalarPath sp && val is JsonObject on)
             {
-                if (element.TryGetProperty(sp.Name, out var newElement)) element = newElement;
-                else throw new JsonException($"Property {sp.Name} does not exist");
+                if (on.FastProperties.TryGetValue(sp.Name, out var obj)) val = obj;
+                else throw new JsonException("Property not found.");
             }
-            // Otherwise if its an indexPath, make sure the element is an array and that the index is ok
-            else if (activePath is IndexPath ip)
+            else if (activePath is IndexPath ip && val is JsonArray an)
             {
-                if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > ip.Index) element = element.EnumerateArray().ElementAt(ip.Index);
-                else throw new JsonException($"Property is either not an array, or the index is more than the array length.");
+                if (an.Elements.Length > ip.Index) val = an.Elements[ip.Index];
+                else throw new JsonException("Index out of range.");
             }
+            else throw new JsonException("Path not found.");
 
             activePath = activePath.Next;
         }
 
-        return ToValue(element);
+        // No failed attempts until the path runs out = Success
+        return val;
     }
 
     public JsonValue this[string pathString] => Get(PathParser.Parse(pathString));
@@ -70,7 +69,7 @@ public sealed partial record JsonObject
     public T Get<T>(JsonPath path) where T : JsonValue
     {
         var val = Get(path);
-        if (val is not T) throw new JsonException($"Expected '{typeof(T).FullName}', but got '{val.GetType().FullName}'.");
+        if (val is not T) throw new JsonException($"Expected type '{typeof(T).FullName}', but got '{val.GetType().FullName}'.");
         return (T)val; // Safe cast as we made sure it is of type T before
     }
     #endregion
@@ -79,30 +78,29 @@ public sealed partial record JsonObject
     public bool TryGet(string pathString, [NotNullWhen(true)] out JsonValue? value) => TryGet(PathParser.Parse(pathString), out value);
     public bool TryGet(JsonPath path, [NotNullWhen(true)] out JsonValue? value)
     {
-        var element = Element;
+        JsonValue val = this;
         JsonPath? activePath = path;
         value = null;
         
         while (activePath is not null)
         {
-            // If its a scalarPath, try to get the property and save it
-            if (activePath is ScalarPath sp)
+            if (activePath is ScalarPath sp && val is JsonObject on)
             {
-                if (element.TryGetProperty(sp.Name, out var newElement)) element = newElement;
+                if (on.FastProperties.TryGetValue(sp.Name, out var obj)) val = obj;
                 else return false;
             }
-            // Otherwise if its an indexPath, make sure the element is an array and that the index is ok
-            else if (activePath is IndexPath ip)
+            else if (activePath is IndexPath ip && val is JsonArray an)
             {
-                if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > ip.Index) element = element.EnumerateArray().ElementAt(ip.Index);
+                if (an.Elements.Length > ip.Index) val = an.Elements[ip.Index];
                 else return false;
             }
+            else return false;
 
             activePath = activePath.Next;
         }
 
-        value = ToValue(element);
-        
+        // No failed attempts until the path runs out = Success
+        value = val;
         return true;
     }
 

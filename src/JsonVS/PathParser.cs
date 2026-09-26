@@ -1,3 +1,5 @@
+using JsonVS.Models;
+
 namespace JsonVS;
 
 public static class PathParser
@@ -10,7 +12,6 @@ public static class PathParser
     JsonPath? head = null;
     JsonPath? tail = null;
 
-    // Use Span splitting or standard Split
     var parts = path.Split('/');
 
     foreach (var part in parts)

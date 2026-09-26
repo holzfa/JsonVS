@@ -1,4 +1,7 @@
-using System.Text.Json;
+using JsonVS.Ast;
+using JsonVS.Lexer;
+using JsonVS.Models;
+using JsonVS.Parser;
 
 namespace JsonVS;
 
@@ -22,9 +25,9 @@ public static class JsonLoader
     /// <returns>The root object of the JSON</returns>
     public static JsonObject Load(string jsonContent)
     {
-        var doc = JsonDocument.Parse(jsonContent);
-        
-        var jFile = new JsonObject(doc.RootElement);
-        return jFile;
+        var tokens = new Tokenizer().Tokenize(jsonContent);
+        var obj = new JsonParser().Parse(tokens);
+
+        return obj;
     }
 }

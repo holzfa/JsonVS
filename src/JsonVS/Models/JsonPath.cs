@@ -1,4 +1,4 @@
-namespace JsonVS;
+namespace JsonVS.Models;
 
 public abstract record JsonPath
 {

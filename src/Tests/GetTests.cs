@@ -1,10 +1,11 @@
 using JsonVS;
+using JsonVS.Models;
 
 namespace Tests;
 
 public class GetTests
 {
-    private readonly string Json = 
+    private readonly string _json = 
         """
         {
             "elements": [ { "from": [ 6, 0, 6 ] } ]
@@ -16,7 +17,7 @@ public class GetTests
     public void UnsafeGetTest()
     {
         // Arrange
-        var obj = JsonLoader.Load(Json);
+        var obj = JsonLoader.Load(_json);
         var path = "elements[0]/from[0]";
         
         // Act
@@ -28,22 +29,22 @@ public class GetTests
         // Assert
         if (dumbResult is JsonInteger ji)
         {
-            Assert.Equal(6, ji.Value);
+            Assert.Equal(6, ji.Get32());
         } else Assert.Fail();
         
         if (indexResult is JsonInteger ii)
         {
-            Assert.Equal(6, ii.Value);
+            Assert.Equal(6, ii.Get32());
         } else Assert.Fail();
         
-        Assert.Equal(6, smartResult.Value);
+        Assert.Equal(6, smartResult.Get32());
     }
     
     [Fact]
     public void SafeGetTest()
     {
         // Arrange
-        var obj = JsonLoader.Load(Json);
+        var obj = JsonLoader.Load(_json);
         var path = "elements[0]/from[0]";
         
         // Act
@@ -54,13 +55,13 @@ public class GetTests
         // Assert
         if (dumbResult && dumbValue is JsonInteger ji)
         {
-            Assert.Equal(6, ji.Value);
+            Assert.Equal(6, ji.Get32());
         } else Assert.Fail();
         
         if (smartResult)
         {
             // SmartValue is guaranteed to not be null here because smartResult is true
-            Assert.Equal(6, smartValue!.Value);
+            Assert.Equal(6, smartValue!.Get32());
         } else Assert.Fail();
     }
 }
