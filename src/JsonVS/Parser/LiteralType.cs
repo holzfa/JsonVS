@@ -1,4 +1,4 @@
-namespace JsonVS.Ast;
+namespace JsonVS.Parser;
 
 public enum LiteralType
 {

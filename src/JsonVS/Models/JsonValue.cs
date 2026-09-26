@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace JsonVS.Models;
+﻿namespace JsonVS.Models;
 
 public abstract record JsonNode;
 public abstract record JsonValue : JsonNode;

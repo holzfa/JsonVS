@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace JsonVS.Lexer;
 
 public abstract class SafeIterator<TItem>

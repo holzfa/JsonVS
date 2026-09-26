@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using JsonVS.Ast;
 
 namespace JsonVS.Models;
 
@@ -10,21 +8,22 @@ public sealed partial record JsonObject
     public bool Exists(string pathString) => Exists(PathParser.Parse(pathString));
     public bool Exists(JsonPath path)
     {
-        JsonValue node = this;
+        JsonValue val = this;
         JsonPath? activePath = path;
         
         while (activePath is not null)
         {
-            if (activePath is ScalarPath sp && node is JsonObject on)
+            if (activePath is ScalarPath sp && val is JsonObject on)
             {
-                if (on.FastProperties.TryGetValue(sp.Name, out var obj)) node = obj;
+                if (on.FastProperties.TryGetValue(sp.Name, out var obj)) val = obj;
                 else return false;
             }
-            else if (activePath is IndexPath ip && node is JsonArray an)
+            else if (activePath is IndexPath ip && val is JsonArray an)
             {
-                if (an.Elements.Length > ip.Index) { if (node is JsonObject obj) node = obj; }
+                if (an.Elements.Length > ip.Index) val = an.Elements[ip.Index];
                 else return false;
             }
+            else return false;
 
             activePath = activePath.Next;
         }
