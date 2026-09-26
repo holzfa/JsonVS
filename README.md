@@ -71,4 +71,4 @@ Methods available on the `JsonObject` class.
 
 ## License
 
-This project is distributed under the MIT License.
+This project is distributed under the MIT [License](LICENSE).
